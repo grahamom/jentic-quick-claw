@@ -33,7 +33,7 @@ prompt()  { echo -e "${BOLD}$*${NC}"; }
 [[ $EUID -ne 0 ]] && fatal "Run as root or with sudo"
 
 echo ""
-INSTALLER_VERSION="v1.0.3"
+INSTALLER_VERSION="v1.0.4"
 echo "╔══════════════════════════════════════════════════════╗"
 echo "║     OpenClaw + Jentic Mini — Stack Installer         ║"
 echo "║                    $INSTALLER_VERSION                          ║"
@@ -89,23 +89,30 @@ CLAW_HOSTNAME="${CLAW_HOSTNAME_INPUT:-claw-stack}"
 hostnamectl set-hostname "$CLAW_HOSTNAME"
 success "Hostname set to: $CLAW_HOSTNAME"
 
-# ── Step 5b: LLM API key ──────────────────────────────────────────────────────
+# ── Step 5b: LLM configuration ───────────────────────────────────────────────
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "  LLM CONFIGURATION"
 echo ""
-echo "  Your agent needs an LLM to think. If you have a"
-echo "  Tensorix.ai account, paste your API key below."
+echo "  Your agent needs an OpenAI-compatible LLM API."
+echo "  Enter your API base URL, key, and model ID below."
 echo "  (Leave blank to configure manually after setup.)"
-echo ""
-echo "  Get a key + \$50 free credits at: https://tensorix.ai"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-TENSORIX_API_KEY=""
-read -r -p "Tensorix API key (tx_...): " TENSORIX_API_KEY < /dev/tty || true
-if [[ -n "$TENSORIX_API_KEY" ]]; then
-    success "Tensorix API key saved — will configure after stack starts."
+LLM_BASE_URL=""
+LLM_API_KEY=""
+LLM_MODEL_ID=""
+read -r -p "LLM API base URL (e.g. https://api.openai.com/v1): " LLM_BASE_URL < /dev/tty || true
+if [[ -n "$LLM_BASE_URL" ]]; then
+    read -r -p "API key: " LLM_API_KEY < /dev/tty || true
+    read -r -p "Model ID (e.g. gpt-4o): " LLM_MODEL_ID < /dev/tty || true
+fi
+if [[ -n "$LLM_BASE_URL" && -n "$LLM_API_KEY" && -n "$LLM_MODEL_ID" ]]; then
+    success "LLM config saved — will configure after stack starts."
 else
-    warn "No API key entered — you can configure your LLM in the OpenClaw UI after setup."
+    warn "LLM config skipped — configure manually in the OpenClaw UI after setup."
+    LLM_BASE_URL=""
+    LLM_API_KEY=""
+    LLM_MODEL_ID=""
 fi
 
 # Generate MM credentials (needed later in docker-compose + bootstrap)
@@ -665,18 +672,18 @@ docker exec openclaw openclaw setup --non-interactive --workspace /root/.opencla
     | grep -v "^$" | sed 's/^/  /' || true
 success "Workspace files seeded"
 
-# ── Step 16.8: Configure LLM (Tensorix) ──────────────────────────────────────
-if [[ -n "$TENSORIX_API_KEY" ]]; then
-    info "Configuring Tensorix LLM..."
+# ── Step 16.8: Configure LLM ─────────────────────────────────────────────────
+if [[ -n "$LLM_BASE_URL" && -n "$LLM_API_KEY" && -n "$LLM_MODEL_ID" ]]; then
+    info "Configuring LLM ($LLM_MODEL_ID)..."
     docker exec \
-        -e TENSORIX_API_KEY="$TENSORIX_API_KEY" \
+        -e LLM_API_KEY="$LLM_API_KEY" \
         openclaw \
         openclaw onboard \
             --non-interactive \
             --auth-choice custom-api-key \
-            --custom-base-url "https://api.tensorix.ai/v1" \
-            --custom-api-key "$TENSORIX_API_KEY" \
-            --custom-model-id "z-ai/glm-4.7" \
+            --custom-base-url "$LLM_BASE_URL" \
+            --custom-api-key "$LLM_API_KEY" \
+            --custom-model-id "$LLM_MODEL_ID" \
             --custom-compatibility openai \
             --accept-risk \
             --skip-channels \
@@ -685,7 +692,7 @@ if [[ -n "$TENSORIX_API_KEY" ]]; then
             --skip-search \
             --skip-ui 2>&1 \
         | grep -v "^$" | sed 's/^/  /' || true
-    success "LLM configured: Tensorix / z-ai/glm-4.7"
+    success "LLM configured: $LLM_MODEL_ID"
 fi
 
 # ── Step 17: Retrieve Gateway Token ──────────────────────────────────────────
