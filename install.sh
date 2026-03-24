@@ -412,29 +412,6 @@ except:
     sleep 2
 done
 
-# ── Step 18: Wait for device pairing ─────────────────────────────────────────
-# Block here so the user can see their device get approved before the script exits.
-# No timeout — waits as long as needed.
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo -e "${YELLOW}${BOLD}  Waiting for device pairing...${NC}"
-echo ""
-echo "  Click the authentication link above, then open the OpenClaw"
-echo "  dashboard. Once it loads, your device will be paired"
-echo "  automatically and this script will complete."
-echo ""
-while true; do
-  RESULT=$(docker exec openclaw openclaw devices approve --latest 2>&1) || true
-  if echo "$RESULT" | grep -qi "approved\|success"; then
-    break
-  fi
-  sleep 2
-done
-echo ""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo -e "${GREEN}${BOLD}  ✔ Device paired! Setup complete.${NC}"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo ""
-
 # ── Done ──────────────────────────────────────────────────────────────────────
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -461,4 +438,27 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo ""
 echo "  All services are only reachable via Tailscale."
 echo "  Filebrowser: no login required — Tailscale is your auth."
+echo ""
+
+# ── Step 18: Wait for device pairing ─────────────────────────────────────────
+# Block here so the user can see their device get approved before the script exits.
+# No timeout — waits as long as needed.
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo -e "${YELLOW}${BOLD}  Waiting for device pairing...${NC}"
+echo ""
+echo "  Click the authentication link above, then open the OpenClaw"
+echo "  dashboard. Once it loads, your device will be paired"
+echo "  automatically and this script will complete."
+echo ""
+while true; do
+  RESULT=$(docker exec openclaw openclaw devices approve --latest 2>&1) || true
+  if echo "$RESULT" | grep -qi "approved\|success"; then
+    break
+  fi
+  sleep 2
+done
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo -e "${GREEN}${BOLD}  ✔ Device paired! Setup complete.${NC}"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
