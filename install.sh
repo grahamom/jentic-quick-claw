@@ -33,7 +33,7 @@ prompt()  { echo -e "${BOLD}$*${NC}"; }
 [[ $EUID -ne 0 ]] && fatal "Run as root or with sudo"
 
 echo ""
-INSTALLER_VERSION="v1.0.5"
+INSTALLER_VERSION="v1.0.6"
 echo "╔══════════════════════════════════════════════════════╗"
 echo "║     OpenClaw + Jentic Mini — Stack Installer         ║"
 echo "║                    $INSTALLER_VERSION                          ║"
@@ -694,10 +694,10 @@ if [[ -n "$LLM_BASE_URL" && -n "$LLM_API_KEY" && -n "$LLM_MODEL_ID" ]]; then
         | grep -v "^$" | sed 's/^/  /' || true
     success "LLM configured: $LLM_MODEL_ID"
 
-    # openclaw onboard resets gateway.bind to 127.0.0.1 — restore to 0.0.0.0
+    # openclaw onboard resets gateway.bind to loopback — restore to lan
     # so Caddy can reach the gateway from outside the container
-    info "Restoring gateway bind address to 0.0.0.0..."
-    docker exec openclaw openclaw config set gateway.bind 0.0.0.0 2>&1 | grep -v "^$" | sed 's/^/  /' || true
+    info "Restoring gateway bind address to lan..."
+    docker exec openclaw openclaw config set gateway.bind lan 2>&1 | grep -v "^$" | sed 's/^/  /' || true
     sleep 12  # wait for gateway restart after bind change
 fi
 
