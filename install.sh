@@ -462,7 +462,7 @@ MM_INTERNAL="http://127.0.0.1:8065"
 MM_WAIT_SECS=0
 MM_READY=false
 while [[ $MM_WAIT_SECS -lt 300 ]]; do
-    STATUS=$(docker exec mattermost curl -sf http://localhost:8065/api/v4/system/ping 2>/dev/null || true)
+    STATUS=$(curl -sf http://127.0.0.1:8065/api/v4/system/ping 2>/dev/null || true)
     if echo "$STATUS" | grep -q "OK\|ok\|status"; then
         MM_READY=true
         break
