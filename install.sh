@@ -18,7 +18,8 @@ OPENCLAW_CONFIG_DIR="$CLAW_BASE/openclaw-config"
 CERTS_DIR="$CLAW_BASE/certs"
 
 OPENCLAW_IMAGE="ghcr.io/openclaw/openclaw:latest"
-JENTIC_MINI_REPO="https://github.com/jentic/jentic-mini.git"
+JENTIC_MINI_IMAGE="ghcr.io/jentic/jentic-mini:latest"
+USE_HTTPS=false  # set early; overridden in TLS step
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; CYAN='\033[0;36m'; BOLD='\033[1m'; NC='\033[0m'
 info()    { echo -e "${CYAN}▶ $*${NC}"; }
@@ -37,8 +38,8 @@ echo ""
 
 # ── Step 1: System packages ───────────────────────────────────────────────────
 info "Installing system packages..."
-apt-get update -qq
-apt-get install -y -qq curl git ca-certificates gnupg lsb-release python3
+apt-get update
+apt-get install -y curl git ca-certificates gnupg lsb-release python3
 success "Packages ready"
 
 # ── Step 2: Docker ────────────────────────────────────────────────────────────
@@ -147,17 +148,11 @@ chmod 777 "$JENTIC_DATA_DIR"   # jentic user (uid 999) must write the DB
 chown -R 1000:1000 "$WORKSPACE_DIR" "$OPENCLAW_CONFIG_DIR"
 success "Directories ready"
 
-# ── Step 9: Clone + build Jentic Mini ─────────────────────────────────────────
-if [[ ! -d "$JENTIC_SRC_DIR/.git" ]]; then
-    info "Cloning Jentic Mini..."
-    git clone --depth=1 "$JENTIC_MINI_REPO" "$JENTIC_SRC_DIR"
-else
-    info "Jentic Mini already cloned — pulling latest..."
-    git -C "$JENTIC_SRC_DIR" pull --ff-only
-fi
-info "Building Jentic Mini image (~2 minutes)..."
-docker build -t jentic-mini:latest "$JENTIC_SRC_DIR"
-success "Jentic Mini image built"
+# ── Step 9: Pull Jentic Mini ──────────────────────────────────────────────────
+info "Pulling Jentic Mini image..."
+docker pull "$JENTIC_MINI_IMAGE"
+docker tag "$JENTIC_MINI_IMAGE" jentic-mini:latest
+success "Jentic Mini image ready"
 
 # ── Step 10: Pull OpenClaw ────────────────────────────────────────────────────
 info "Pulling OpenClaw image..."
@@ -175,18 +170,16 @@ if os.path.exists(cfg_path):
         cfg = json.load(open(cfg_path))
     except Exception:
         pass
-# Gateway: listen on all interfaces, allow Tailscale origin
+# Gateway: listen on all interfaces, allow Tailscale origins
 cfg.setdefault('gateway', {})['bind'] = 'lan'
+ts_dns = '${TS_DNS}'
 allowed = cfg['gateway'].setdefault('controlUi', {}).setdefault('allowedOrigins', [
     'http://localhost:18789', 'http://127.0.0.1:18789'
 ])
-import os
-ts_dns = os.environ.get('TS_DNS', '')
-use_https = os.environ.get('USE_HTTPS', 'false') == 'true'
 if ts_dns:
-    ts_origin = ('https://' if use_https else 'http://') + ts_dns + ('' if use_https else ':18789')
-    if ts_origin not in allowed:
-        allowed.append(ts_origin)
+    for origin in [f'https://{ts_dns}', f'http://{ts_dns}:18789']:
+        if origin not in allowed:
+            allowed.append(origin)
 json.dump(cfg, open(cfg_path, 'w'), indent=4)
 print('OpenClaw config written')
 PYEOF
