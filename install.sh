@@ -453,15 +453,32 @@ docker compose up -d
 success "Stack started"
 
 # ── Step 16.5: Bootstrap Mattermost ──────────────────────────────────────────
-info "Waiting for Mattermost to start..."
+echo ""
+echo "  ┌─────────────────────────────────────────────────────────┐"
+echo "  │  Waiting for Mattermost (first boot runs DB migrations) │"
+echo "  │  This takes 2–4 min on small servers — totally normal.  │"
+echo "  └─────────────────────────────────────────────────────────┘"
 MM_INTERNAL="http://127.0.0.1:8065"
-for i in $(seq 1 60); do
-    STATUS=$(docker exec mattermost curl -sf http://localhost:8065/api/v4/system/ping 2>/dev/null || echo "")
+MM_WAIT_SECS=0
+MM_READY=false
+while [[ $MM_WAIT_SECS -lt 300 ]]; do
+    STATUS=$(docker exec mattermost curl -sf http://localhost:8065/api/v4/system/ping 2>/dev/null || true)
     if echo "$STATUS" | grep -q "OK\|ok\|status"; then
+        MM_READY=true
         break
     fi
-    sleep 3
+    sleep 5
+    MM_WAIT_SECS=$((MM_WAIT_SECS + 5))
+    # Print a progress line every 15 seconds with elapsed time + last log line
+    if (( MM_WAIT_SECS % 15 == 0 )); then
+        LAST_LOG=$(docker logs --tail=1 mattermost 2>&1 | tr -d "\r\n" | cut -c1-80 || true)
+        printf "  ⏳ %ds elapsed — %s\n" "$MM_WAIT_SECS" "$LAST_LOG"
+    fi
 done
+if [[ "$MM_READY" != "true" ]]; then
+    warn "Mattermost did not start within 5 minutes — skipping bot bootstrap."
+    warn "Run 'docker logs mattermost' to diagnose. You can run the bootstrap manually later."
+fi
 
 info "Bootstrapping Mattermost (creating admin + bot)..."
 MM_BOT_TOKEN=$(python3 - <<MMEOF
