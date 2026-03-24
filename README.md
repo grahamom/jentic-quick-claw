@@ -8,150 +8,109 @@ You get a fully-configured [OpenClaw](https://openclaw.ai) agent with a local [J
 
 ## Deploy
 
-Pick a provider, create a fresh **Ubuntu 22.04/24.04** server with at least **2GB RAM**, SSH in as root, and run the one-liner below.
+You need a fresh **Ubuntu 22.04 or 24.04** server with at least **2 GB RAM**. Any VPS provider works.
 
-### One-line install
+### Recommended providers
+
+| Provider | Recommended spec | Monthly cost |
+|---|---|---|
+| **[Hetzner](https://console.hetzner.cloud/)** ⭐ | CX22 — 2 vCPU, 4 GB RAM | ~€4 |
+| **[DigitalOcean](https://cloud.digitalocean.com/droplets/new)** | Basic Droplet — 2 GB RAM | ~$12 |
+| **[Linode / Akamai](https://cloud.linode.com/linodes/create)** | Linode 2 GB | ~$12 |
+| **[Vultr](https://my.vultr.com/deploy/)** | Cloud Compute — 2 GB RAM | ~$12 |
+| **[OVHcloud](https://www.ovhcloud.com/en/vps/)** | VPS Starter — 2 GB RAM | ~€4 |
+| **[AWS EC2](https://console.aws.amazon.com/ec2/v2/home#LaunchInstances:)** | t3.small — 2 GB RAM | ~$15 |
+
+> Hetzner CX22 is the best value. DigitalOcean has the friendliest UI for beginners.
+
+---
+
+### Option A — Interactive install (SSH)
+
+SSH into your server as root, then run:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/jentic/jentic-quick-claw/main/install.sh | sudo bash
 ```
 
----
-
-### ☁️ Providers
-
-| Provider | Monthly cost | Recommended spec | Create server |
-|---|---|---|---|
-| **Hetzner** | ~€4 | CX22 (2 vCPU, 4 GB RAM) | [![Hetzner](https://img.shields.io/badge/Deploy_on-Hetzner-D50C2D?logo=hetzner&logoColor=white)](https://console.hetzner.cloud/projects) |
-| **DigitalOcean** | ~$12 | Basic Droplet 2 GB | [![DigitalOcean](https://img.shields.io/badge/Deploy_on-DigitalOcean-0080FF?logo=digitalocean&logoColor=white)](https://cloud.digitalocean.com/droplets/new?image=ubuntu-22-04-x64&size=s-2vcpu-4gb) |
-| **Linode / Akamai** | ~$12 | Linode 2 GB | [![Linode](https://img.shields.io/badge/Deploy_on-Linode_Akamai-02B159?logo=linode&logoColor=white)](https://cloud.linode.com/linodes/create) |
-| **Vultr** | ~$12 | Regular Cloud Compute 2 GB | [![Vultr](https://img.shields.io/badge/Deploy_on-Vultr-007BFC?logo=vultr&logoColor=white)](https://my.vultr.com/deploy/) |
-| **OVHcloud** | ~€4 | VPS Starter (2 GB) | [![OVHcloud](https://img.shields.io/badge/Deploy_on-OVHcloud-123F6D?logo=ovh&logoColor=white)](https://www.ovhcloud.com/en/vps/) |
-| **Contabo** | ~€6 | Cloud VPS S (4 GB RAM) | [![Contabo](https://img.shields.io/badge/Deploy_on-Contabo-FF6600?logoColor=white)](https://contabo.com/en/vps/) |
-| **UpCloud** | ~$10 | Simple 2 GB | [![UpCloud](https://img.shields.io/badge/Deploy_on-UpCloud-7B00D4?logoColor=white)](https://upcloud.com/products/cloud-servers/) |
-| **AWS EC2** | ~$15 | t3.small (2 GB) | [![AWS](https://img.shields.io/badge/Deploy_on-AWS_EC2-232F3E?logo=amazon-aws&logoColor=white)](https://console.aws.amazon.com/ec2/v2/home#LaunchInstances:) |
-| **Google Cloud** | ~$14 | e2-small (2 GB) | [![Google Cloud](https://img.shields.io/badge/Deploy_on-Google_Cloud-4285F4?logo=google-cloud&logoColor=white)](https://console.cloud.google.com/compute/instancesAdd) |
-| **Azure** | ~$17 | B1ms (2 GB) | [![Azure](https://img.shields.io/badge/Deploy_on-Azure-0078D4?logo=microsoft-azure&logoColor=white)](https://portal.azure.com/#create/Microsoft.VirtualMachine-ARM) |
-
-> **Tip:** Hetzner is the best value for most users. DigitalOcean has the most beginner-friendly UI.
+The script prompts you for a machine name and walks you through Tailscale auth in your browser. Takes about 5–10 minutes.
 
 ---
 
-### ⚡ One-click cloud-init (automated, no SSH needed)
+### Option B — Automated install (cloud-init, no SSH needed)
 
-Most providers let you paste a **User Data** script when creating a server. This script runs automatically on first boot — no SSHing in required.
+Most VPS providers let you paste a **User Data** script when creating a server. It runs on first boot — you never need to SSH in.
 
-> **Requires:** A [Tailscale auth key](https://login.tailscale.com/admin/settings/keys) (reusable, from your Tailscale admin settings). Without it, Tailscale needs an interactive browser step.
+**Prerequisites:**
+- A [Tailscale auth key](https://login.tailscale.com/admin/settings/keys) — create a reusable one in Tailscale admin settings. This lets the server join your tailnet without an interactive browser step.
 
-Paste this into the **User Data / Cloud-Init** field when creating your server:
+**User Data script** (paste this when creating your server):
 
 ```bash
 #!/bin/bash
-export TS_AUTHKEY="tskey-auth-REPLACE_ME"   # ← paste your auth key here
+export TS_AUTHKEY="tskey-auth-REPLACE_ME"   # ← your Tailscale auth key
 curl -fsSL https://raw.githubusercontent.com/jentic/jentic-quick-claw/main/install.sh | bash
 ```
 
-#### Where to find User Data on each provider
+**Where to find the User Data field:**
 
 <details>
-<summary><strong>Hetzner</strong></summary>
+<summary><strong>Hetzner</strong> — "Cloud config" field</summary>
 
-1. Go to [Hetzner Cloud Console](https://console.hetzner.cloud/) → **New Server**
-2. OS: Ubuntu 22.04
-3. Type: **CX22** (2 vCPU, 4 GB RAM, ~€4/month)
-4. Scroll to **Cloud config** → paste the User Data script above
+1. [Hetzner Cloud Console](https://console.hetzner.cloud/) → **New Server**
+2. Image: **Ubuntu 22.04**
+3. Type: **CX22** (2 vCPU, 4 GB, ~€4/mo)
+4. Scroll down to **Cloud config** — paste the script there
 5. Add your SSH key → **Create & Buy now**
 
-> No SSH step needed — the agent installs itself and joins your Tailscale network automatically.
+</details>
+
+<details>
+<summary><strong>DigitalOcean</strong> — "Advanced Options → User Data"</summary>
+
+1. [Create Droplet](https://cloud.digitalocean.com/droplets/new?image=ubuntu-22-04-x64&size=s-2vcpu-4gb)
+2. Scroll to **Advanced Options** → enable **Add Initialization scripts**
+3. Paste the script → **Create Droplet**
 
 </details>
 
 <details>
-<summary><strong>DigitalOcean</strong></summary>
+<summary><strong>Linode / Akamai</strong> — "Advanced Options → Add User Data"</summary>
 
-1. Go to [Create Droplet](https://cloud.digitalocean.com/droplets/new?image=ubuntu-22-04-x64&size=s-2vcpu-4gb) (link pre-fills Ubuntu 22.04 + 2 GB)
-2. Scroll to **Advanced Options** → enable **Add Initialization scripts (free)**
-3. Paste the User Data script above
-4. Add your SSH key → **Create Droplet**
-
-</details>
-
-<details>
-<summary><strong>Linode / Akamai</strong></summary>
-
-1. Go to [Create Linode](https://cloud.linode.com/linodes/create)
-2. Image: Ubuntu 22.04 LTS
-3. Plan: **Linode 2 GB** (~$12/month)
-4. Scroll to **Advanced Options** → **Add User Data**
-5. Paste the User Data script above
-6. Add your SSH key → **Create Linode**
+1. [Create Linode](https://cloud.linode.com/linodes/create)
+2. Image: Ubuntu 22.04 LTS, Plan: **Linode 2 GB**
+3. **Advanced Options** → **Add User Data** → paste the script
+4. **Create Linode**
 
 </details>
 
 <details>
-<summary><strong>Vultr</strong></summary>
+<summary><strong>Vultr</strong> — "Server Settings → User Data"</summary>
 
-1. Go to [Deploy](https://my.vultr.com/deploy/)
-2. Server type: **Cloud Compute — Regular Performance**
-3. OS: Ubuntu 22.04
-4. Plan: 2 GB / 1 vCPU (~$12/month)
-5. Scroll to **Server Settings** → **User Data**
-6. Paste the User Data script above
-7. **Deploy Now**
+1. [Deploy](https://my.vultr.com/deploy/) → Cloud Compute, Ubuntu 22.04, 2 GB plan
+2. **Server Settings** → **User Data** → paste the script
+3. **Deploy Now**
 
 </details>
 
 <details>
-<summary><strong>OVHcloud</strong></summary>
+<summary><strong>AWS EC2</strong> — "Advanced details → User data"</summary>
 
-1. Go to [VPS order](https://www.ovhcloud.com/en/vps/) → order **Starter** or **Value** (≥2 GB RAM)
-2. During configuration, select **Ubuntu 22.04**
-3. In the **Script / User Data** field, paste the User Data script above
-4. Complete the order
-
-> OVHcloud may require a post-delivery SSH step if cloud-init is not available on your chosen template. Check their console for first-boot output.
-
-</details>
-
-<details>
-<summary><strong>AWS EC2</strong></summary>
-
-1. Go to [Launch Instance](https://console.aws.amazon.com/ec2/v2/home#LaunchInstances:)
-2. AMI: **Ubuntu Server 22.04 LTS (64-bit x86)**
-3. Instance type: **t3.small** (2 GB RAM, ~$15/month)
-4. Under **Advanced details** → **User data** → paste the User Data script above
-5. Configure a security group: allow **SSH (port 22)** from your IP, and **UDP 41641** for Tailscale
-6. Launch with your key pair
-
-> Everything else (app ports) is locked down by the installer's iptables rules — Tailscale is the only access route.
+1. [Launch Instance](https://console.aws.amazon.com/ec2/v2/home#LaunchInstances:)
+2. AMI: Ubuntu Server 22.04 LTS, Instance type: **t3.small**
+3. **Advanced details** → **User data** → paste the script
+4. Security group: allow SSH (22) and UDP 41641 (Tailscale) from your IP
+5. Launch
 
 </details>
 
 <details>
-<summary><strong>Google Compute Engine</strong></summary>
+<summary><strong>Google Compute Engine</strong> — "Advanced options → Startup script"</summary>
 
-1. Go to [Create VM](https://console.cloud.google.com/compute/instancesAdd)
-2. Machine family: **E2** → **e2-small** (2 vCPU shared, 2 GB RAM, ~$14/month)
-3. Boot disk: **Ubuntu 22.04 LTS**
-4. Expand **Advanced options** → **Management** → **Automation** → **Startup script**
-5. Paste the User Data script above
-6. **Create**
-
-Alternatively, use the **Cloud Shell** button to open a terminal and SSH into a new instance yourself:
-
-[![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://shell.cloud.google.com/cloudshell/open?git_repo=https://github.com/jentic/jentic-quick-claw)
-
-</details>
-
-<details>
-<summary><strong>Azure</strong></summary>
-
-1. Go to [Create a virtual machine](https://portal.azure.com/#create/Microsoft.VirtualMachine-ARM)
-2. Image: **Ubuntu Server 22.04 LTS**
-3. Size: **B1ms** (1 vCPU, 2 GB RAM, ~$17/month) or **B2s** for more headroom
-4. Under **Advanced** → **Custom data** → paste the User Data script above
-5. Inbound ports: allow **SSH (22)** — the installer locks everything else down via iptables
-6. **Review + create**
+1. [Create VM](https://console.cloud.google.com/compute/instancesAdd)
+2. Machine: **E2 → e2-small**, Boot disk: Ubuntu 22.04 LTS
+3. **Advanced options → Management → Automation → Startup script** → paste the script
+4. **Create**
 
 </details>
 
