@@ -470,27 +470,61 @@ import urllib.request, urllib.error, json, sys, time
 base = "http://127.0.0.1:8065/api/v4"
 
 def api(method, path, data=None, token=None):
+    """Call Mattermost API; returns parsed JSON dict (or {} on empty body)."""
     url = base + path
-    body = json.dumps(data).encode() if data else None
+    body = json.dumps(data).encode() if data is not None else None
     req = urllib.request.Request(url, data=body, method=method)
     req.add_header("Content-Type", "application/json")
     if token:
         req.add_header("Authorization", f"Bearer {token}")
     try:
-        with urllib.request.urlopen(req, timeout=10) as r:
-            return json.loads(r.read())
+        with urllib.request.urlopen(req, timeout=15) as r:
+            raw = r.read()
+            return json.loads(raw) if raw.strip() else {}
     except urllib.error.HTTPError as e:
-        return json.loads(e.read())
+        raw = e.read()
+        # Empty body on error (e.g. 503 while still starting) — return status only
+        if not raw.strip():
+            return {"_http_status": e.code}
+        try:
+            return json.loads(raw)
+        except Exception:
+            return {"_http_status": e.code, "_body": raw.decode(errors="replace")}
 
-# Wait for MM to be ready
-for _ in range(20):
+def mm_login(username, password):
+    """Log in; returns (user_dict, token_str).
+    Mattermost returns the session token in the 'Token' response header,
+    NOT in the JSON body — this is why api() can't be used for login."""
+    data = json.dumps({"login_id": username, "password": password}).encode()
+    req = urllib.request.Request(base + "/users/login", data=data, method="POST")
+    req.add_header("Content-Type", "application/json")
     try:
-        api("GET", "/system/ping")
-        break
-    except Exception:
-        time.sleep(3)
+        with urllib.request.urlopen(req, timeout=15) as r:
+            tok = r.headers.get("Token", "")
+            raw = r.read()
+            user = json.loads(raw) if raw.strip() else {}
+            return user, tok
+    except urllib.error.HTTPError as e:
+        return {}, ""
 
-# Create admin user (first user becomes system admin)
+# Wait for MM to be fully ready (up to 3 min)
+ready = False
+for _ in range(60):
+    try:
+        result = api("GET", "/system/ping")
+        if result.get("status") == "OK" or result.get("status") == "ok":
+            ready = True
+            break
+    except Exception:
+        pass
+    time.sleep(3)
+
+if not ready:
+    sys.stderr.write("Mattermost did not become ready in time\n")
+    print("")
+    sys.exit(0)
+
+# Create admin user (first registered user becomes system admin automatically)
 admin = api("POST", "/users", {
     "email": "admin@claw.local",
     "username": "admin",
@@ -499,30 +533,17 @@ admin = api("POST", "/users", {
     "last_name": ""
 })
 
-# Log in as admin
-login = api("POST", "/users/login", {
-    "login_id": "admin",
-    "password": "${MM_ADMIN_PASS}"
-})
-token = login.get("token") or ""
+# Log in — captures the Token header correctly
+user, token = mm_login("admin", "${MM_ADMIN_PASS}")
 
 if not token:
-    # Maybe admin already exists — try login directly
-    req2 = urllib.request.Request(base + "/users/login",
-        data=json.dumps({"login_id": "admin", "password": "${MM_ADMIN_PASS}"}).encode(),
-        method="POST")
-    req2.add_header("Content-Type", "application/json")
-    try:
-        with urllib.request.urlopen(req2, timeout=10) as r:
-            token = r.headers.get("Token", "")
-    except Exception:
-        pass
-
-if not token:
+    sys.stderr.write("Login failed — could not obtain session token\n")
     print("")
     sys.exit(0)
 
-# Enable personal access tokens in config
+admin_id = user.get("id", "")
+
+# Enable personal access tokens and bot account creation
 api("PUT", "/config/patch", {
     "ServiceSettings": {
         "EnableUserAccessTokens": True,
@@ -537,6 +558,13 @@ team = api("POST", "/teams", {
     "type": "O"
 }, token)
 team_id = team.get("id", "")
+
+# Add admin to team
+if team_id and admin_id:
+    api("POST", f"/teams/{team_id}/members", {
+        "team_id": team_id,
+        "user_id": admin_id
+    }, token)
 
 # Create bot account
 bot = api("POST", "/bots", {
@@ -553,21 +581,19 @@ if team_id and bot_user_id:
         "user_id": bot_user_id
     }, token)
 
-# Add admin to team
-admin_id = admin.get("id") or login.get("id", "")
-if team_id and admin_id:
-    api("POST", f"/teams/{team_id}/members", {
-        "team_id": team_id,
-        "user_id": admin_id
-    }, token)
-
 # Generate personal access token for the bot
 if bot_user_id:
     pat = api("POST", f"/users/{bot_user_id}/tokens", {
         "description": "OpenClaw agent token"
     }, token)
-    print(pat.get("token", ""))
+    bot_token = pat.get("token", "")
+    if bot_token:
+        print(bot_token)
+    else:
+        sys.stderr.write(f"PAT creation returned: {pat}\n")
+        print("")
 else:
+    sys.stderr.write(f"Bot creation returned: {bot}\n")
     print("")
 MMEOF
 )
