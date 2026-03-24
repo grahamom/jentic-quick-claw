@@ -410,26 +410,28 @@ except:
     sleep 2
 done
 
-# ── Step 18: Background auto-approve device pairing ─────────────────────────
-# When the user opens the dashboard and enters the token, a device pairing
-# request is created. We approve it automatically so they never get stuck.
-# Written to a file and run via nohup so it survives the script exiting.
-cat > /opt/claw/auto-approve-pairing.sh << 'APPROVE_EOF'
-#!/usr/bin/env bash
-MAX=150  # 150 x 2s = 5 min
-for i in $(seq 1 $MAX); do
+# ── Step 18: Wait for device pairing ─────────────────────────────────────────
+# Block here so the user can see their device get approved before the script exits.
+# No timeout — waits as long as needed.
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo -e "${YELLOW}${BOLD}  Waiting for device pairing...${NC}"
+echo ""
+echo "  Click the authentication link above, then open the OpenClaw"
+echo "  dashboard. Once it loads, your device will be paired"
+echo "  automatically and this script will complete."
+echo ""
+while true; do
   RESULT=$(docker exec openclaw openclaw devices approve --latest 2>&1)
   if echo "$RESULT" | grep -qi "approved\|success"; then
-    echo "[$(date)] Device approved." >> /tmp/auto-approve.log
     break
   fi
   sleep 2
 done
-APPROVE_EOF
-chmod +x /opt/claw/auto-approve-pairing.sh
-nohup bash /opt/claw/auto-approve-pairing.sh >> /tmp/auto-approve.log 2>&1 &
-disown
-info "Device pairing approver running in background (log: /tmp/auto-approve.log)"
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo -e "${GREEN}${BOLD}  ✔ Device paired! Setup complete.${NC}"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
 
 # ── Done ──────────────────────────────────────────────────────────────────────
 echo ""
@@ -456,6 +458,5 @@ fi
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 echo "  All services are only reachable via Tailscale."
-echo "  Device pairing: approved automatically when you first log in."
 echo "  Filebrowser: no login required — Tailscale is your auth."
 echo ""
