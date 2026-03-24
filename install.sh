@@ -193,9 +193,9 @@ if [[ "$USE_HTTPS" == "true" ]]; then
     JENTIC_URL="https://$TS_DNS:8900"
     FILES_URL="https://$TS_DNS:8080"
 else
-    OPENCLAW_URL="http://$TS_IP:18789"
-    JENTIC_URL="http://$TS_IP:8900"
-    FILES_URL="http://$TS_IP:8080"
+    OPENCLAW_URL="http://$TS_DNS:18789"
+    JENTIC_URL="http://$TS_DNS:8900"
+    FILES_URL="http://$TS_DNS:8080"
 fi
 
 cat > "$WORKSPACE_DIR/BOOTSTRAP.md" <<BOOTSTRAP
