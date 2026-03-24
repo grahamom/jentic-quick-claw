@@ -423,7 +423,7 @@ echo "  dashboard. Once it loads, your device will be paired"
 echo "  automatically and this script will complete."
 echo ""
 while true; do
-  RESULT=$(docker exec openclaw openclaw devices approve --latest 2>&1)
+  RESULT=$(docker exec openclaw openclaw devices approve --latest 2>&1) || true
   if echo "$RESULT" | grep -qi "approved\|success"; then
     break
   fi
