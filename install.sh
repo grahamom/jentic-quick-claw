@@ -38,7 +38,7 @@ echo ""
 # ── Step 1: System packages ───────────────────────────────────────────────────
 info "Installing system packages..."
 apt-get update -qq
-apt-get install -y -qq curl git ufw ca-certificates gnupg lsb-release apt-transport-https python3
+apt-get install -y -qq curl git ca-certificates gnupg lsb-release python3
 success "Packages ready"
 
 # ── Step 2: Docker ────────────────────────────────────────────────────────────
@@ -366,15 +366,39 @@ print('Caddyfile written')
 PYEOF
 fi
 
-# ── Step 15: UFW firewall ─────────────────────────────────────────────────────
-info "Configuring firewall..."
-ufw --force reset
-ufw default deny incoming
-ufw default allow outgoing
-ufw allow ssh
-ufw allow in on tailscale0
-ufw --force enable
-success "Firewall configured — SSH + Tailscale only"
+# ── Step 15: Firewall ─────────────────────────────────────────────────────────
+# NOTE: UFW alone is NOT sufficient on Docker hosts.
+# Docker writes DNAT rules directly into iptables nat PREROUTING, which fires
+# *before* UFW and bypasses its rules entirely. We use two layers:
+#   1. iptables DOCKER-USER chain — blocks public internet from reaching containers
+#   2. iptables INPUT chain rules — blocks non-SSH, non-Tailscale host traffic
+# Both are saved via iptables-persistent and restored on every boot (before Docker starts).
+
+info "Configuring firewall (iptables-persistent + DOCKER-USER)..."
+DEBIAN_FRONTEND=noninteractive apt-get install -y -qq iptables-persistent
+
+# Layer 1: Block public internet from Docker-published container ports
+# DOCKER-USER is evaluated in FORWARD before Docker's own ACCEPT rules
+iptables -F DOCKER-USER 2>/dev/null || true
+iptables -A DOCKER-USER -i tailscale0 -j ACCEPT   # Tailscale traffic in
+iptables -A DOCKER-USER -i docker0    -j ACCEPT   # Container-to-container (default bridge)
+iptables -A DOCKER-USER -i br+        -j ACCEPT   # Container-to-container (custom bridges)
+iptables -A DOCKER-USER -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+iptables -A DOCKER-USER -j DROP                   # Drop everything else
+
+# Layer 2: Host INPUT — allow SSH + Tailscale, drop the rest
+# Flush any prior rules first, then set a DROP default
+iptables -F INPUT 2>/dev/null || true
+iptables -P INPUT DROP
+iptables -A INPUT -i lo -j ACCEPT                                          # Loopback
+iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT    # Return traffic
+iptables -A INPUT -i tailscale0 -j ACCEPT                                 # All Tailscale
+iptables -A INPUT -p tcp --dport 22 -j ACCEPT                             # SSH (management)
+iptables -A INPUT -p udp --dport 41641 -j ACCEPT                          # Tailscale WireGuard
+
+# Save — netfilter-persistent restores on boot before Docker starts
+netfilter-persistent save
+success "Firewall configured — SSH + Tailscale only (Docker bypass closed)"
 
 # ── Step 16: Start the stack ──────────────────────────────────────────────────
 info "Starting stack..."
