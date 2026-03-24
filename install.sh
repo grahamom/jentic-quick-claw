@@ -143,6 +143,7 @@ fi
 info "Creating directories..."
 mkdir -p "$WORKSPACE_DIR" "$JENTIC_DATA_DIR" "$FB_DB_DIR" "$OPENCLAW_CONFIG_DIR" "$CERTS_DIR"
 chmod 777 "$FB_DB_DIR"
+chmod 777 "$JENTIC_DATA_DIR"   # jentic user (uid 999) must write the DB
 chown -R 1000:1000 "$WORKSPACE_DIR" "$OPENCLAW_CONFIG_DIR"
 success "Directories ready"
 
@@ -176,10 +177,6 @@ if os.path.exists(cfg_path):
         pass
 # Gateway: listen on all interfaces
 cfg.setdefault('gateway', {})['bind'] = 'lan'
-# Pre-configure Jentic skill pointing at local Jentic Mini
-cfg.setdefault('skills', {}).setdefault('entries', {})['jentic-mini'] = {
-    'url': 'http://jentic-mini:8900'
-}
 json.dump(cfg, open(cfg_path, 'w'), indent=4)
 print('OpenClaw config written')
 PYEOF
@@ -347,17 +344,17 @@ caddyfile = f"""{{
 }}
 
 https://{ts_dns} {{
-    tls {certs_dir}/cert.pem {certs_dir}/key.pem
+    tls /certs/cert.pem /certs/key.pem
     reverse_proxy openclaw:18789
 }}
 
 https://{ts_dns}:8900 {{
-    tls {certs_dir}/cert.pem {certs_dir}/key.pem
+    tls /certs/cert.pem /certs/key.pem
     reverse_proxy jentic-mini:8900
 }}
 
 https://{ts_dns}:8080 {{
-    tls {certs_dir}/cert.pem {certs_dir}/key.pem
+    tls /certs/cert.pem /certs/key.pem
     reverse_proxy filebrowser:80
 }}
 """
