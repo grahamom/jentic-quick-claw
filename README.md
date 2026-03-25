@@ -37,7 +37,7 @@ Also install the Tailscale client on the device you'll use to connect:
 
 ### 1.3 A Pipedream account
 
-[Sign up at pipedream.com](https://pipedream.com). Pipedream is used to connect your agent to external APIs and services.
+[Sign up at pipedream.com](https://pipedream.com). Pipedream is an Oauth broker to connect external APIs and services via SSO.
 
 ---
 
