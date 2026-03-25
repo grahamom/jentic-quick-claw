@@ -239,7 +239,25 @@ Once in the OpenClaw UI, configure a model by entering your API key. Your agent 
 
 Open Mattermost at `https://claw-stack.tail-xxxx.ts.net:8065`. Log in with the admin credentials printed at the end of the install. Your agent's bot (`@claw-agent`) is already in the `claw` team and connected to OpenClaw. -->
 
-### Step 2: Install the Jentic Skill
+### Step 2: Say Hello
+
+Send your agent an initial message to make sure everything is working:
+
+> "Hey, are you there?"
+
+Your agent should respond and introduce itself.
+
+### Step 3: Complete Onboarding
+
+Your agent will guide you through an onboarding process. Follow along to set up your preferences and get familiar with how OpenClaw works.
+
+### Step 4: Save Tool URLs
+
+Tell your agent to remember the URLs for the tools available in your stack:
+
+> "Store the urls for filebrowser and jentic-mini in your workspace/TOOLS.md"
+
+### Step 5: Install the Jentic Skill
 
 Tell your agent:
 
@@ -253,7 +271,13 @@ clawhub install jentic
 
 When asked for a URL, enter: `http://jentic-mini:8900`
 
-### Step 3: Explore the Workspace
+### Step 6 (Optional): Tune Agent Behaviour
+
+If you'd like your agent to check in with you when things go wrong rather than repeatedly retrying tools, tell it:
+
+> "Update your SOUL.md to prefer returning to me if something goes wrong, rather than repeatedly retrying tools. You should still be helpful and suggest next steps."
+
+### Step 7: Explore the Workspace
 
 Open Filebrowser at `https://claw-stack.tail-xxxx.ts.net:8080` to browse your agent's memory and config files. No login required — Tailscale handles authentication.
 
