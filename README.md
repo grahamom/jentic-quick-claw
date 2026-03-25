@@ -64,9 +64,8 @@ You need a fresh **Ubuntu 22.04 or 24.04** server with at least **2 GB RAM** and
 
 1. [Create VM](https://console.cloud.google.com/compute/instancesAdd)
 2. Machine: **E2 → e2-small**, Boot disk: Ubuntu 22.04 LTS (20 GB or more)
-3. Add your SSH key under **Security → Manage access → Add manually generated SSH keys**
-4. **Create**
-5. Once the VM is running, SSH in and run the install script (see below)
+3. **Create**
+4. Once the VM is running, click the **SSH** button in the console to open a web-based terminal, then run the install script (see below)
 
 </details>
 
