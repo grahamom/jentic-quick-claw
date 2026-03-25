@@ -41,18 +41,14 @@ After signing up, do two things in the [Tailscale admin console](https://login.t
 1. Enable **MagicDNS** — gives your server a stable hostname like `my-agent.tail-xxxx.ts.net`
 2. Enable **HTTPS Certificates** — lets the installer get a real TLS cert for your server
 
+Also install the Tailscale client on the device you'll use to connect:
+- [macOS](https://tailscale.com/download/mac) · [Windows](https://tailscale.com/download/windows) · [iOS](https://tailscale.com/download/ios) · [Android](https://tailscale.com/download/android)
+
 ### 3. A Pipedream account
 
 [Sign up at pipedream.com](https://pipedream.com). Pipedream is used to connect your agent to external APIs and services.
 
-### 4. Tailscale on your laptop/phone
-
-Install the Tailscale client on the device you'll use to connect:
-- [macOS](https://tailscale.com/download/mac) · [Windows](https://tailscale.com/download/windows) · [iOS](https://tailscale.com/download/ios) · [Android](https://tailscale.com/download/android)
-
-Sign in with the same Tailscale account you used above.
-
-### 5. A server
+### 4. A server
 
 A fresh Ubuntu 22.04 or 24.04 VPS with at least **2 GB RAM** and **20 GB disk space**. See the provider table below.
 
