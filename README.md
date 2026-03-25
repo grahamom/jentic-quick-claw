@@ -1,6 +1,6 @@
-# jentic-claw-stack
+# Jentic Quick Claw
 
-A one-command installer for a personal AI agent stack, secured by Tailscale.
+A one-command installer for OpenClaw on a VPS, equipped with Jentic Mini and File Browser, secured with Tailscale.
 
 You get a fully-configured [OpenClaw](https://openclaw.ai) agent with a local [Jentic Mini](https://github.com/jentic/jentic-mini) instance pre-wired and ready to use — plus Mattermost for team chat, and a web-based file browser for your agent's workspace. Everything runs in Docker, everything is private to your Tailscale network.
 
