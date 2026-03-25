@@ -6,34 +6,25 @@ A one-command installer for OpenClaw on a VPS, equipped with Jentic Mini and Fil
 
 You get a fully-configured [OpenClaw](https://openclaw.ai) agent with a local [Jentic Mini](https://github.com/jentic/jentic-mini) instance pre-wired and ready to use — plus a web-based file browser for your agent's workspace. Everything runs in Docker, everything is private to your Tailscale network.
 
----
+## Contents
 
-## Interactive Installation
-
-> **Before running this script**, make sure you have completed the setup steps in [What You Need Before Starting](#what-you-need-before-starting) below.
-
-Once your server is running, SSH in and run:
-
-```bash
-curl -fsSL "https://raw.githubusercontent.com/jentic/jentic-quick-claw/main/install.sh" | \
-  sudo LLM_BASE_URL=https://api.tensorix.ai/v1 \
-       LLM_MODEL_ID=z-ai/glm-5 \
-       bash
-```
-
-The script will prompt you for your **API key** — it is never pre-filled for security reasons.
+1. [What You Need Before Starting](#1-what-you-need-before-starting)
+2. [Set Up Your Server](#2-set-up-your-server)
+3. [Install OpenClaw on Your Server](#3-install-openclaw-on-your-server)
+4. [Interact with Your OpenClaw Instance](#4-interact-with-your-openclaw-instance)
+5. [Troubleshooting](#troubleshooting)
 
 ---
 
-## What You Need Before Starting
+## 1. What You Need Before Starting
 
-### 1. An AI provider API key
+### 1.1 An AI provider API key
 
 OpenClaw works with most major LLM providers. [Tensorix](https://tensorix.ai) is the recommended provider — ask event organisers for the registration link.
 
 You will enter this as part of the install flow.
 
-### 2. A Tailscale account
+### 1.2 A Tailscale account
 
 [Sign up free at tailscale.com](https://tailscale.com). The free tier supports up to 100 devices.
 
@@ -44,17 +35,13 @@ After signing up, do two things in the [Tailscale admin console](https://login.t
 Also install the Tailscale client on the device you'll use to connect:
 - [macOS](https://tailscale.com/download/mac) · [Windows](https://tailscale.com/download/windows) · [iOS](https://tailscale.com/download/ios) · [Android](https://tailscale.com/download/android)
 
-### 3. A Pipedream account
+### 1.3 A Pipedream account
 
 [Sign up at pipedream.com](https://pipedream.com). Pipedream is used to connect your agent to external APIs and services.
 
-### 4. A server
-
-A fresh Ubuntu 22.04 or 24.04 VPS with at least **2 GB RAM** and **20 GB disk space**. See the provider table below.
-
 ---
 
-## Deploy
+## 2. Set Up Your Server
 
 You need a fresh **Ubuntu 22.04 or 24.04** server with at least **2 GB RAM** and **20 GB disk space**. Any VPS provider works.
 
@@ -134,6 +121,19 @@ You need a fresh **Ubuntu 22.04 or 24.04** server with at least **2 GB RAM** and
 </details>
 
 ---
+
+## 3. Install OpenClaw on Your Server
+
+Once your server is running, SSH in and run:
+
+```bash
+curl -fsSL "https://raw.githubusercontent.com/jentic/jentic-quick-claw/main/install.sh" | \
+  sudo LLM_BASE_URL=https://api.tensorix.ai/v1 \
+       LLM_MODEL_ID=z-ai/glm-5 \
+       bash
+```
+
+The script will prompt you for your **API key** — it is never pre-filled for security reasons.
 
 ### LLM Providers
 
@@ -220,7 +220,7 @@ At the end, you'll see something like:
 
 --- -->
 
-## First-Time Setup
+## 4. Interact with Your OpenClaw Instance
 
 ### Step 1: Authenticate with OpenClaw
 
@@ -231,15 +231,15 @@ Make sure Tailscale is running on your device, then click the authentication lin
 > python3 -c "import json; print(json.load(open('/opt/claw/openclaw-config/openclaw.json'))['gateway']['auth']['token'])"
 > ```
 
-### Step 2: Add Your AI Provider Key
+<!-- ### Step 2: Add Your AI Provider Key
 
-Once in the OpenClaw UI, configure a model by entering your API key. Your agent will start up and introduce itself.
+Once in the OpenClaw UI, configure a model by entering your API key. Your agent will start up and introduce itself. -->
 
 <!-- ### Step 3: Connect to Mattermost
 
 Open Mattermost at `https://claw-stack.tail-xxxx.ts.net:8065`. Log in with the admin credentials printed at the end of the install. Your agent's bot (`@claw-agent`) is already in the `claw` team and connected to OpenClaw. -->
 
-### Step 3: Install the Jentic Skill
+### Step 2: Install the Jentic Skill
 
 Tell your agent:
 
@@ -253,7 +253,7 @@ clawhub install jentic
 
 When asked for a URL, enter: `http://jentic-mini:8900`
 
-### Step 4: Explore the Workspace
+### Step 3: Explore the Workspace
 
 Open Filebrowser at `https://claw-stack.tail-xxxx.ts.net:8080` to browse your agent's memory and config files. No login required — Tailscale handles authentication.
 
