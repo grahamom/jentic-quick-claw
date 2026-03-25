@@ -37,6 +37,31 @@ The script prompts you for a machine name and walks you through Tailscale auth i
 
 ---
 
+
+### Pre-selecting an LLM provider
+
+By default the installer will prompt you for an LLM base URL, API key, and model ID. You can skip those prompts by passing the values as environment variables:
+
+```bash
+curl -fsSL "https://raw.githubusercontent.com/jentic/jentic-quick-claw/main/install.sh" | \
+  sudo LLM_BASE_URL=https://api.tensorix.ai/v1 \
+       LLM_MODEL_ID=z-ai/glm-5 \
+       bash
+```
+
+You will still be prompted for the **API key** — it is never pre-filled for security reasons.
+
+Any OpenAI-compatible provider works. Just swap in the base URL and model ID:
+
+| Provider | `LLM_BASE_URL` | Example `LLM_MODEL_ID` |
+|---|---|---|
+| Tensorix | `https://api.tensorix.ai/v1` | `z-ai/glm-5` |
+| OpenAI | `https://api.openai.com/v1` | `gpt-4o` |
+| Anthropic (via proxy) | your proxy URL | `claude-sonnet-4-5` |
+| Local (Ollama) | `http://localhost:11434/v1` | `llama3` |
+
+---
+
 ### Option B — Automated install (cloud-init, no SSH needed)
 
 Most VPS providers let you paste a **User Data** script when creating a server. It runs on first boot — you never need to SSH in.
