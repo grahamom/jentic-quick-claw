@@ -1,5 +1,7 @@
 # Jentic Quick Claw
 
+<a href="https://www.producthunt.com/products/jentic-mini?utm_source=badge-follow&utm_medium=badge&utm_source=badge-jentic&#0045;mini" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/follow.svg?product_id=1189931&theme=light" alt="Jentic&#0032;Mini - Give&#0032;your&#0032;AI&#0032;agents&#0032;safe&#0032;access&#0032;to&#0032;10&#0044;000&#0043;&#0032;APIs | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
+
 A one-command installer for OpenClaw on a VPS, equipped with Jentic Mini and File Browser, secured with Tailscale.
 
 <!-- You get a fully-configured [OpenClaw](https://openclaw.ai) agent with a local [Jentic Mini](https://github.com/jentic/jentic-mini) instance pre-wired and ready to use — plus Mattermost for team chat, and a web-based file browser for your agent's workspace. Everything runs in Docker, everything is private to your Tailscale network. -->
