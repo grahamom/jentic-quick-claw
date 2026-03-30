@@ -134,7 +134,7 @@ curl -fsSL "https://raw.githubusercontent.com/jentic/jentic-quick-claw/main/inst
 
 The script will prompt you for your **API key** — it is never pre-filled for security reasons.
 
-> Having trouble with pairing? See [Troubleshooting: "Pairing required"](#pairing-required-in-the-control-ui-and-clicking-connect-doesnt-work).
+> Having trouble with pairing? See [Troubleshooting](#troubleshooting).
 
 ### LLM Providers
 
